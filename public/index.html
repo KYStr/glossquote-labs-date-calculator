@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <meta name="description" content="計算兩個公曆日期的天數差，或從指定日期加減整數天數。同時顯示含起訖日的日期數，在瀏覽器內完成，不上傳日期。">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; form-action 'none'">
+    <link rel="alternate" hreflang="en" href="./en/index.html">
+    <link rel="alternate" hreflang="zh-Hant" href="./index.html">
+    <link rel="stylesheet" href="./styles/tokens.css">
+    <link rel="stylesheet" href="./styles/app.css">
+    <script type="module" src="./js/app.mjs"></script>
+    <title>日期差與加減天數｜算出相隔幾天與指定日期 — GlossQuote-Labs</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <p class="brand">GlossQuote-Labs</p>
+        <nav class="language-switch" aria-label="語言">
+          <span id="language-reset-note" class="language-note">切換語言會清空日期與計算結果。</span>
+          <a href="./index.html" hreflang="zh-Hant" rel="alternate" aria-current="page">繁體中文</a>
+          <a href="./en/index.html" hreflang="en" rel="alternate">English</a>
+        </nav>
+      </header>
+
+      <main class="page" aria-labelledby="page-title">
+        <header class="page-header">
+          <h1 id="page-title">日期差與加減天數</h1>
+          <p class="page-intro">需要知道兩個日期相隔幾天，或七天後是哪一天？選擇計算方式、輸入日期，就能查看結果與計日規則。</p>
+        </header>
+
+        <section class="task-canvas" aria-label="日期計算工具">
+          <p id="unsupported-note" class="inline-notice" role="note">此瀏覽器無法啟動計算功能。你仍可閱讀下方的計日規則。</p>
+
+          <form id="date-form" novalidate autocomplete="off">
+            <fieldset id="calculator-controls" class="calculator-controls" disabled>
+              <fieldset class="mode-group">
+                <legend>計算方式</legend>
+                <div class="mode-options">
+                  <label class="mode-option" for="mode-diff">
+                    <input id="mode-diff" type="radio" name="calculation-mode" value="diff" checked>
+                    <span>日期差</span>
+                  </label>
+                  <label class="mode-option" for="mode-offset">
+                    <input id="mode-offset" type="radio" name="calculation-mode" value="offset">
+                    <span>加減天數</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <section id="diff-panel" class="mode-panel" aria-labelledby="diff-panel-title">
+                <h2 id="diff-panel-title" class="visually-hidden">日期差</h2>
+                <div class="date-fields diff-fields">
+                  <div class="form-field">
+                    <label for="date-start">開始日期</label>
+                    <input id="date-start" type="date" min="0001-01-01" max="9999-12-31" aria-describedby="start-help">
+                    <p id="start-help" class="field-help">原生日期欄位依瀏覽器格式顯示；若以文字輸入，請用 YYYY-MM-DD。支援 0001-01-01 至 9999-12-31。</p>
+                    <p id="start-error" class="field-error" hidden></p>
+                  </div>
+
+                  <button id="swap-dates" class="button button-secondary swap-button" type="button">交換日期</button>
+
+                  <div class="form-field">
+                    <label for="date-end">結束日期</label>
+                    <input id="date-end" type="date" min="0001-01-01" max="9999-12-31" aria-describedby="end-help">
+                    <p id="end-help" class="field-help">原生日期欄位依瀏覽器格式顯示；若以文字輸入，請用 YYYY-MM-DD。支援 0001-01-01 至 9999-12-31。</p>
+                    <p id="end-error" class="field-error" hidden></p>
+                  </div>
+                </div>
+              </section>
+
+              <section id="offset-panel" class="mode-panel" aria-labelledby="offset-panel-title" hidden>
+                <h2 id="offset-panel-title" class="visually-hidden">加減天數</h2>
+                <div class="date-fields offset-fields">
+                  <div class="form-field">
+                    <label for="date-base">基準日期</label>
+                    <input id="date-base" type="date" min="0001-01-01" max="9999-12-31" aria-describedby="base-help">
+                    <p id="base-help" class="field-help">原生日期欄位依瀏覽器格式顯示；若以文字輸入，請用 YYYY-MM-DD。支援 0001-01-01 至 9999-12-31。</p>
+                    <p id="base-error" class="field-error" hidden></p>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="day-offset">加減天數</label>
+                    <input id="day-offset" type="text" inputmode="text" value="0" aria-describedby="days-help">
+                    <p id="days-help" class="field-help">輸入 -3652058 至 3652058 的整數；正數往後，負數往前，0 表示同一天。</p>
+                    <p id="days-error" class="field-error" hidden></p>
+                  </div>
+                </div>
+                <p id="offset-rule" class="offset-rule">正數往後，負數往前；0 天維持基準日期。</p>
+              </section>
+
+              <section id="diff-results" class="results-panel" aria-labelledby="diff-results-title">
+                <h2 id="diff-results-title">計算結果</h2>
+                <div class="results-grid">
+                  <div class="result-item">
+                    <h3 id="diff-result-label">日期差（結束－開始）</h3>
+                    <p class="result-value"><output id="diff-result" aria-live="off" aria-labelledby="diff-result-label">—</output><span class="result-unit">天</span></p>
+                  </div>
+                  <div class="result-item">
+                    <h3 id="inclusive-result-label">含起訖日的日期數</h3>
+                    <p class="result-value"><output id="inclusive-result" aria-live="off" aria-labelledby="inclusive-result-label">—</output><span class="result-unit">天</span></p>
+                  </div>
+                </div>
+              </section>
+
+              <section id="offset-results" class="results-panel offset-result-panel" aria-labelledby="offset-results-title" hidden>
+                <h2 id="offset-results-title">結果日期</h2>
+                <p class="result-value result-date-value"><output id="date-result" aria-live="off" aria-labelledby="offset-results-title">—</output></p>
+              </section>
+
+              <div class="result-tools">
+                <p id="result-note" class="result-note">輸入兩個日期，查看日期差。</p>
+                <button id="clear-input" class="button button-secondary clear-button" type="button">清除</button>
+              </div>
+            </fieldset>
+          </form>
+
+          <p id="calculation-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+          <noscript>
+            <p class="inline-notice">需要啟用 JavaScript 才能計算日期；下方仍可閱讀計日規則、範圍與常見問題。</p>
+          </noscript>
+        </section>
+
+        <div class="supporting-content">
+          <section class="guide-section" aria-labelledby="how-to-title">
+            <h2 id="how-to-title">使用方式</h2>
+            <ol>
+              <li>選擇「日期差」或「加減天數」。</li>
+              <li>輸入所需日期；加減模式再輸入整數天數。</li>
+              <li>直接查看答案與計日規則；需要重算時可交換日期或清除。</li>
+            </ol>
+          </section>
+
+          <section class="guide-section rules-section" aria-labelledby="rules-title">
+            <h2 id="rules-title">計日規則與範圍</h2>
+            <p>日期差以「結束日期－開始日期」計算，表示跨過的日期數；結束日期較早時結果為負數。含起訖日的日期數則是日期差絕對值加一，所以同一天的日期差為 0，含起訖日為 1。</p>
+            <p>加減天數以連續日曆日計算：正數往後、負數往前，0 回到基準日期。本工具使用西元延伸公曆，只計算日期，不使用時間、裝置時區或夏令時間。</p>
+            <p>支援日期範圍為 0001-01-01 至 9999-12-31；年份 0000、其他曆法、工作日、國定假日與月份或年份加減不在支援範圍內。日期只在瀏覽器中計算，不會送出或儲存；本工具不追蹤你的操作。</p>
+          </section>
+
+          <section class="guide-section faq-section" aria-labelledby="faq-title">
+            <h2 id="faq-title">常見問題</h2>
+            <details>
+              <summary>日期差和含起訖日的日期數有什麼不同？</summary>
+              <p>日期差計算兩日期間跨過幾個日期邊界；含起訖日的日期數會把開始和結束日期都計入，因此等於日期差絕對值加一。</p>
+            </details>
+            <details>
+              <summary>同一天為什麼會顯示 0 天和 1 天？</summary>
+              <p>同一天沒有跨過日期邊界，所以日期差是 0；把起訖日都計入時，該日計為 1 天。</p>
+            </details>
+            <details>
+              <summary>會扣掉週末或國定假日嗎？</summary>
+              <p>不會。工具計算連續的公曆日期，沒有工作日或各地假日資料。</p>
+            </details>
+            <details>
+              <summary>夏令時間或時區會改變結果嗎？</summary>
+              <p>不會。這裡只處理日期，不處理時間或時區，也不以一天實際有幾個小時換算。</p>
+            </details>
+            <details>
+              <summary>支援哪些日期？可以輸入農曆日期嗎？</summary>
+              <p>支援西元延伸公曆的 0001-01-01 至 9999-12-31，不支援年份 0000 或其他曆法，例如農曆。</p>
+            </details>
+            <details>
+              <summary>日期會被送出、保存或追蹤嗎？</summary>
+              <p>輸入日期只在瀏覽器中計算，不會送出或儲存；本工具不追蹤你的操作。清除或重新整理後，日期需重新輸入。</p>
+            </details>
+            <details>
+              <summary>可以用這個結果判定法律期限或醫療日期嗎？</summary>
+              <p>本工具不判定法律、醫療或其他特定用途的規則。若結果會影響重要決定，請核對適用規定與可信資料。</p>
+            </details>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

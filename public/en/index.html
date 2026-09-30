@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <meta name="description" content="Find the days between two Gregorian dates or add and subtract whole days from a date. See both the date difference and inclusive count, calculated in your browser without sending your dates.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; form-action 'none'">
+    <link rel="alternate" hreflang="zh-Hant" href="../index.html">
+    <link rel="alternate" hreflang="en" href="./index.html">
+    <link rel="stylesheet" href="../styles/tokens.css">
+    <link rel="stylesheet" href="../styles/app.css">
+    <script type="module" src="../js/app.mjs"></script>
+    <title>Date Difference and Add or Subtract Days | GlossQuote-Labs</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <p class="brand">GlossQuote-Labs</p>
+        <nav class="language-switch" aria-label="Language">
+          <span id="language-reset-note" class="language-note">Changing language clears dates and results.</span>
+          <a href="./index.html" hreflang="en" rel="alternate" aria-current="page">English</a>
+          <a href="../index.html" hreflang="zh-Hant" rel="alternate">繁體中文</a>
+        </nav>
+      </header>
+
+      <main class="page" aria-labelledby="page-title">
+        <header class="page-header">
+          <h1 id="page-title">Date Difference and Add or Subtract Days</h1>
+          <p class="page-intro">Find the number of days between two dates or the date a certain number of days away. Choose a calculation, enter the dates, and see the answer with its counting rule.</p>
+        </header>
+
+        <section class="task-canvas" aria-label="Date calculator">
+          <p id="unsupported-note" class="inline-notice" role="note">This browser could not start the calculator. You can still read the date rules below.</p>
+
+          <form id="date-form" novalidate autocomplete="off">
+            <fieldset id="calculator-controls" class="calculator-controls" disabled>
+              <fieldset class="mode-group">
+                <legend>Calculation</legend>
+                <div class="mode-options">
+                  <label class="mode-option" for="mode-diff">
+                    <input id="mode-diff" type="radio" name="calculation-mode" value="diff" checked>
+                    <span>Date difference</span>
+                  </label>
+                  <label class="mode-option" for="mode-offset">
+                    <input id="mode-offset" type="radio" name="calculation-mode" value="offset">
+                    <span>Add or subtract days</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <section id="diff-panel" class="mode-panel" aria-labelledby="diff-panel-title">
+                <h2 id="diff-panel-title" class="visually-hidden">Date difference</h2>
+                <div class="date-fields diff-fields">
+                  <div class="form-field">
+                    <label for="date-start">Start date</label>
+                    <input id="date-start" type="date" min="0001-01-01" max="9999-12-31" aria-describedby="start-help">
+                    <p id="start-help" class="field-help">Native date controls use your browser’s display format. For text entry, use YYYY-MM-DD. Supported dates: 0001-01-01 through 9999-12-31.</p>
+                    <p id="start-error" class="field-error" hidden></p>
+                  </div>
+
+                  <button id="swap-dates" class="button button-secondary swap-button" type="button">Swap dates</button>
+
+                  <div class="form-field">
+                    <label for="date-end">End date</label>
+                    <input id="date-end" type="date" min="0001-01-01" max="9999-12-31" aria-describedby="end-help">
+                    <p id="end-help" class="field-help">Native date controls use your browser’s display format. For text entry, use YYYY-MM-DD. Supported dates: 0001-01-01 through 9999-12-31.</p>
+                    <p id="end-error" class="field-error" hidden></p>
+                  </div>
+                </div>
+              </section>
+
+              <section id="offset-panel" class="mode-panel" aria-labelledby="offset-panel-title" hidden>
+                <h2 id="offset-panel-title" class="visually-hidden">Add or subtract days</h2>
+                <div class="date-fields offset-fields">
+                  <div class="form-field">
+                    <label for="date-base">Base date</label>
+                    <input id="date-base" type="date" min="0001-01-01" max="9999-12-31" aria-describedby="base-help">
+                    <p id="base-help" class="field-help">Native date controls use your browser’s display format. For text entry, use YYYY-MM-DD. Supported dates: 0001-01-01 through 9999-12-31.</p>
+                    <p id="base-error" class="field-error" hidden></p>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="day-offset">Days to add or subtract</label>
+                    <input id="day-offset" type="text" inputmode="text" value="0" aria-describedby="days-help">
+                    <p id="days-help" class="field-help">Enter a whole number from -3652058 to 3652058. Positive moves forward; negative moves back; 0 keeps the base date.</p>
+                    <p id="days-error" class="field-error" hidden></p>
+                  </div>
+                </div>
+                <p id="offset-rule" class="offset-rule">Positive days move forward; negative days move back. 0 keeps the base date.</p>
+              </section>
+
+              <section id="diff-results" class="results-panel" aria-labelledby="diff-results-title">
+                <h2 id="diff-results-title">Results</h2>
+                <div class="results-grid">
+                  <div class="result-item">
+                    <h3 id="diff-result-label">Date difference (end − start)</h3>
+                    <p class="result-value"><output id="diff-result" aria-live="off" aria-labelledby="diff-result-label">—</output><span class="result-unit">days</span></p>
+                  </div>
+                  <div class="result-item">
+                    <h3 id="inclusive-result-label">Inclusive date count</h3>
+                    <p class="result-value"><output id="inclusive-result" aria-live="off" aria-labelledby="inclusive-result-label">—</output><span class="result-unit">days</span></p>
+                  </div>
+                </div>
+              </section>
+
+              <section id="offset-results" class="results-panel offset-result-panel" aria-labelledby="offset-results-title" hidden>
+                <h2 id="offset-results-title">Result date</h2>
+                <p class="result-value result-date-value"><output id="date-result" aria-live="off" aria-labelledby="offset-results-title">—</output></p>
+              </section>
+
+              <div class="result-tools">
+                <p id="result-note" class="result-note">Enter two dates to see their difference.</p>
+                <button id="clear-input" class="button button-secondary clear-button" type="button">Clear</button>
+              </div>
+            </fieldset>
+          </form>
+
+          <p id="calculation-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+          <noscript>
+            <p class="inline-notice">JavaScript must be enabled to calculate dates. The date rules, supported range, and FAQs below are still available.</p>
+          </noscript>
+        </section>
+
+        <div class="supporting-content">
+          <section class="guide-section" aria-labelledby="how-to-title">
+            <h2 id="how-to-title">How to use this calculator</h2>
+            <ol>
+              <li>Choose Date difference or Add or subtract days.</li>
+              <li>Enter the dates you need. In the second mode, enter a whole number of days too.</li>
+              <li>Read the answer and its counting rule. Swap the dates or clear them to start again.</li>
+            </ol>
+          </section>
+
+          <section class="guide-section rules-section" aria-labelledby="rules-title">
+            <h2 id="rules-title">Date rules and limits</h2>
+            <p>Date difference is calculated as “end date − start date” and counts the date boundaries crossed. The result is negative when the end date is earlier. The inclusive date count is the absolute difference plus one, so the same date has a difference of 0 and an inclusive count of 1.</p>
+            <p>Adding or subtracting days moves across consecutive calendar dates: positive numbers move forward, negative numbers move back, and 0 keeps the base date. The calculator uses the extended Gregorian calendar and works with dates only; it does not use time, your device time zone, or daylight saving time.</p>
+            <p>Supported dates run from 0001-01-01 through 9999-12-31. Year 0000, other calendars, workdays, public holidays, and adding months or years are not supported. Your dates are calculated only in your browser; they are not sent or stored, and this tool does not track your activity.</p>
+          </section>
+
+          <section class="guide-section faq-section" aria-labelledby="faq-title">
+            <h2 id="faq-title">Frequently asked questions</h2>
+            <details>
+              <summary>What is the difference between date difference and inclusive count?</summary>
+              <p>Date difference counts the date boundaries crossed. Inclusive count includes both the start and end date, so it is the absolute difference plus one.</p>
+            </details>
+            <details>
+              <summary>Why can the same date show 0 days and 1 day?</summary>
+              <p>The same date crosses no date boundary, so its difference is 0. Counting that date as both the start and end gives an inclusive count of 1.</p>
+            </details>
+            <details>
+              <summary>Does the calculator exclude weekends or public holidays?</summary>
+              <p>No. It counts consecutive Gregorian calendar dates and does not include workday or local holiday data.</p>
+            </details>
+            <details>
+              <summary>Can daylight saving time or my time zone change the answer?</summary>
+              <p>No. This calculator works with dates, not times or time zones. It does not convert dates to hours or assume that every day has a fixed number of hours.</p>
+            </details>
+            <details>
+              <summary>Which dates are supported? Can I use lunar dates?</summary>
+              <p>It supports extended Gregorian dates from 0001-01-01 through 9999-12-31. Year 0000 and other calendars, including lunar calendars, are not supported.</p>
+            </details>
+            <details>
+              <summary>Are my dates sent, saved, or tracked?</summary>
+              <p>Your dates are calculated only in your browser. They are not sent or stored, and this tool does not track your activity. Clear the form or reload the page to remove the current entries.</p>
+            </details>
+            <details>
+              <summary>Can I rely on this for a legal deadline or medical date?</summary>
+              <p>This calculator does not determine legal, medical, or other purpose-specific rules. For an important decision, confirm the applicable rules and trusted source data.</p>
+            </details>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
