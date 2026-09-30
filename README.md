@@ -58,9 +58,43 @@ Manual checks remain pending: real 200% zoom, labels expanded by another 40%, ph
 
 ## 公開原始碼與網站上線 / Source publication and hosting
 
-此倉庫供原始碼檢查，尚未部署網站或啟用GitHub Pages。兩語保留`noindex, nofollow`，沒有正式canonical或sitemap。正式網址確定後，需補絕對canonical/hreflang、精確調整check/build允許的SEO檔案與路徑，並在託管端驗證CSP（含frame-ancestors）、nosniff、Referrer-Policy、HTTPS及mjs MIME後再開放索引。
+此倉庫供原始碼檢查，尚未部署網站或啟用GitHub Pages。兩語來源與預設build保留`noindex, nofollow`。正式建置工具鏈已備妥；網址及主機選定後，仍需驗證安全標頭、MIME、重新導向與索引政策，才能部署正式版本。
 
-This repository is for source review. The site is not deployed and GitHub Pages is not enabled. Both pages retain `noindex, nofollow`; production canonical URLs and a sitemap are not configured. Hosting requires production canonical/hreflang URLs, precise check/build allowances for SEO files, and verified CSP (including frame-ancestors), nosniff, Referrer-Policy, HTTPS, and mjs MIME settings before indexing is enabled.
+This repository is for source review. The site is not deployed and GitHub Pages is not enabled. Source pages and default builds retain `noindex, nofollow`. Production build tooling is ready; actual hosting headers, MIME types, redirects, and indexing policies still require verification before deployment.
+
+## 稽核修正與正式建置 / Audit fixes and production builds
+
+2026-09-30：46項測試、20個受管來源檔檢查及8檔預覽建置通過。兩語原生HTTP頁面完成14項鍵盤狀態檢查；Enter現在確認最新日期結果，保留焦點、離欄確認與有效输入時節制通知。模擬DOM測試不等於真螢幕閱讀器验證，以上人工待驗仍保留。
+
+On 2026-09-30, all 46 tests, checks covering 20 source files, and the 8-file preview build passed. Fourteen real HTTP browser assertions covered both languages. Enter confirms the latest result without moving focus; change-on-blur and quiet continuous typing remain. Simulated DOM tests do not certify screen-reader behavior; the manual checklist above remains pending.
+
+下列網址只供離線測試。正式主機選定後換成真實HTTPS部署目錄；不要部署這個佔位網址。兩旗標須一起使用，沒有預設正式網址。
+
+The URL below is an offline test placeholder. Replace it with the real HTTPS deployment directory once hosting is decided. Both flags are required; there is no default production URL. Do not deploy the placeholder build.
+
+```sh
+npm run build -- --production --site-url https://dates.example.invalid/tools/dates/
+npm run check -- --production --site-url https://dates.example.invalid/tools/dates/
+```
+
+- 正式HTML產生自指canonical、雙向絕對zh-Hant/en hreflang及index/follow；sitemap只含index.html與en/index.html。來源HTML仍noindex。
+- Production HTML gets self-canonical URLs, reciprocal absolute zh-Hant/en hreflang, and index/follow. The sitemap lists only index.html and en/index.html. Source HTML stays noindex.
+- 根目錄正式build10檔，含robots.txt；子目錄build9檔，不產生robots，須檢查主站origin根目錄既有政策並提交或登記sitemap。不得覆寫主站robots。
+- Origin-root builds contain 10 files including robots.txt. Subdirectory builds contain 9 files and no robots file; inspect the parent site's origin-root policy and submit or register the sitemap without overwriting that policy.
+- 接受簡單ASCII HTTPS主機／目錄，拒絕帳密、query、fragment、編碼及歧義路徑。一般連結與資產仍限本地；只有精確SEO metadata可用絕對網址，任意XML/TXT及inline script仍拒絕。註解中的SEO標記不計有效。
+- Plain ASCII HTTPS hosts/directories are accepted; credentials, queries, fragments, encoded and ambiguous paths are rejected. General links/assets stay local, only exact SEO metadata permits absolute URLs, and arbitrary XML/TXT or inline scripts remain rejected. Commented-out SEO tags do not count.
+- 無旗標npm run build恢復8檔noindex預覽；npm run dev永遠讀public，不是正式主機。build不部署，dist不入Git。
+- Running npm run build without flags restores the 8-file noindex preview. npm run dev always serves public, not the production build. Builds do not deploy, and dist is not tracked.
+
+正式主機仍需配置並以真實HTTP驗收下列headers、HTTPS、mjs JavaScript MIME、未知路徑404、唯一URL與redirect、origin robots和無衝突X-Robots-Tag。若主機將index.html強制轉址到目錄URL，先調整並測試canonical契約。CSP meta不能提供frame-ancestors；開發伺服器headers不會自動部署。
+
+Verify these headers over real HTTP, plus HTTPS, JavaScript MIME for mjs, unknown-route 404s, unique URLs/redirects, origin robots, and non-conflicting X-Robots-Tag. If hosting redirects index.html to directory URLs, update and test the canonical contract first. Meta CSP cannot provide frame-ancestors, and development-server headers do not deploy automatically.
+
+```text
+Content-Security-Policy: default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; form-action 'none'; frame-ancestors 'none'
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+```
 
 ## 授權 / License
 

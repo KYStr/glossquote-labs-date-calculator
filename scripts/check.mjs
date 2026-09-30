@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { lstat, readFile, realpath, readdir } from "node:fs/promises";
 import { dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { PAGE_PATHS, assertProductionHtml, parseReleaseArgs, releasePolicy } from "./release.mjs";
 
 const PROJECT_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const REQUIRED_PATHS = Object.freeze([
@@ -237,14 +238,15 @@ async function resolveLocalReference(value, sourcePath, allowedRoot, failures, p
   }
 }
 
-async function checkHtml(source, filePath, publicRoot, projectRoot, failures) {
+async function checkHtml(source, filePath, publicRoot, projectRoot, failures, metadataLinks = []) {
   const html = stripComments(source, "html");
   if (/<base\b/i.test(html) || /<style\b/i.test(html) || /\sstyle\s*=/i.test(html) || /\son[a-z]+\s*=/i.test(html)) {
     failures.push(`${displayPath(projectRoot, filePath)}: inline execution or style markup is not allowed`);
   }
 
   const tags = html.matchAll(/<([a-z][a-z\d:-]*)\b([^>]*)>/gi);
-  for (const [, tagName, attributes] of tags) {
+  for (const [wholeTag, tagName, attributes] of tags) {
+    if (metadataLinks.includes(wholeTag)) continue;
     const isScript = tagName.toLowerCase() === "script";
     const hasSource = /\bsrc\s*=/i.test(attributes);
     if (isScript && !hasSource) {
@@ -399,11 +401,64 @@ export async function runProjectCheck(projectPath = PROJECT_ROOT) {
   return { ok: true, checkedFiles: files.length };
 }
 
+export async function checkReleaseOutput(outputPath, { siteUrl } = {}) {
+  const policy = releasePolicy(siteUrl);
+  const root = resolve(outputPath);
+  const rootInfo = await lstat(root);
+  if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink()) throw new Error("Release root must be a regular directory.");
+  const canonicalRoot = await realpath(root);
+  const failures = [];
+  const files = [];
+  async function visit(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const path = resolve(directory, entry.name);
+      const info = await lstat(path);
+      if (info.isSymbolicLink() || entry.name.startsWith(".") || !isPathInside(canonicalRoot, await realpath(path))) {
+        throw new Error("Release paths must remain regular, visible, and inside the output root.");
+      }
+      if (info.isDirectory()) await visit(path);
+      else if (info.isFile()) files.push(path);
+      else throw new Error("Unsupported release path.");
+    }
+  }
+  await visit(canonicalRoot);
+  const names = files.map((path) => relative(canonicalRoot, path).split(sep).join("/"));
+  for (const required of [...PAGE_PATHS, ...policy.files.keys()]) {
+    if (!names.includes(required)) failures.push(`Missing release file: ${required}`);
+  }
+  for (const path of files) {
+    const name = relative(canonicalRoot, path).split(sep).join("/");
+    const extension = extname(path).toLowerCase();
+    const source = await readFile(path, "utf8");
+    if (policy.files.has(name)) {
+      if (source !== policy.files.get(name)) failures.push(`${name}: generated SEO content differs from policy`);
+    } else if (!PUBLIC_EXTENSIONS.has(extension)) {
+      failures.push(`${name}: unsupported release file extension`);
+    } else if (extension === ".html") {
+      try { assertProductionHtml(source, name, policy); }
+      catch (error) { failures.push(`${name}: ${error.message}`); }
+      await checkHtml(source, path, canonicalRoot, canonicalRoot, failures, PAGE_PATHS.includes(name) ? policy.links(name) : []);
+    } else if (extension === ".css") {
+      await checkCss(source, path, canonicalRoot, canonicalRoot, failures);
+    } else {
+      const checked = spawnSync(process.execPath, ["--check", path], { shell: false, encoding: "utf8", windowsHide: true });
+      if (checked.error || checked.status !== 0) failures.push(`${name}: JavaScript syntax check failed`);
+      checkForbiddenApis(source, path, canonicalRoot, failures);
+      await checkModuleReferences(source, path, "public", canonicalRoot, canonicalRoot, failures);
+    }
+  }
+  if (failures.length) throw new Error(`Release check failed:\n- ${failures.join("\n- ")}`);
+  return { ok: true, checkedFiles: files.length };
+}
+
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
 if (invokedPath === fileURLToPath(import.meta.url)) {
   try {
-    const result = await runProjectCheck();
-    process.stdout.write(`Static checks passed for ${result.checkedFiles} managed source files. Keyword scans are not a security certification.\n`);
+    const options = parseReleaseArgs(process.argv.slice(2));
+    const result = options.production
+      ? await checkReleaseOutput(resolve(PROJECT_ROOT, "dist"), options)
+      : await runProjectCheck();
+    process.stdout.write(`Static checks passed for ${result.checkedFiles} ${options.production ? "release" : "managed source"} files. Keyword scans are not a security certification.\n`);
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : "Project check failed."}\n`);
     process.exitCode = 1;

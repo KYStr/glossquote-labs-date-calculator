@@ -322,6 +322,21 @@ function handleClear(event) {
   (mode === "diff" ? dom.dateStart : dom.dateBase).focus();
 }
 
+function handleFieldKeydown(event) {
+  if (
+    event.defaultPrevented ||
+    event.key !== "Enter" ||
+    event.isComposing === true ||
+    event.keyCode === 229 ||
+    event.repeat === true
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+  calculate("change");
+}
+
 function bindHandlersOnce() {
   if (handlersBound) {
     return;
@@ -330,6 +345,7 @@ function bindHandlersOnce() {
   for (const field of dom.fields) {
     field.input.addEventListener("input", () => calculate("input"));
     field.input.addEventListener("change", () => calculate("change"));
+    field.input.addEventListener("keydown", handleFieldKeydown);
   }
   dom.modeDiff.addEventListener("change", handleModeChange);
   dom.modeOffset.addEventListener("change", handleModeChange);
