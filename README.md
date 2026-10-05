@@ -4,6 +4,12 @@
 
 A static date calculator in Traditional Chinese and English. Calculations run in your browser, with no account, API, upload, tracking, or storage of entered dates.
 
+正式網站 / Live website: [繁體中文](https://date.glossquote.com/index.html) · [English](https://date.glossquote.com/en/index.html)
+
+2026-10-06 已部署於 Cloudflare Free Static Assets。DNSSEC、HTTPS、24項正式HTTP檢查、雙語瀏覽器計算及10份公開檔案的位元組比對均通過。搜尋引擎是否收錄尚未驗證；下列真機與輔助技術待驗項仍保留。
+
+Deployed on Cloudflare Free Static Assets on 2026-10-06. DNSSEC, HTTPS, 24 live HTTP checks, bilingual browser calculations, and byte comparisons of all 10 public files passed. Search-engine indexing is not verified; the device and assistive-technology checks listed below remain pending.
+
 ## 功能 / Features
 
 - **日期差 / Date difference:** 結束日期減開始日期，可為負數。End date minus start date, including negative differences.
@@ -58,9 +64,9 @@ Manual checks remain pending: real 200% zoom, labels expanded by another 40%, ph
 
 ## 公開原始碼與網站上線 / Source publication and hosting
 
-此倉庫供原始碼檢查，尚未部署網站或啟用GitHub Pages。兩語來源與預設build保留`noindex, nofollow`。正式建置工具鏈已備妥；網址及主機選定後，仍需驗證安全標頭、MIME、重新導向與索引政策，才能部署正式版本。
+此倉庫供原始碼檢查；正式網站已部署於Cloudflare，未啟用GitHub Pages。兩語來源與預設build保留`noindex, nofollow`，正式版本須使用下方明確production建置旗標。安全標頭、MIME、重新導向與索引政策已於正式HTTP驗收。
 
-This repository is for source review. The site is not deployed and GitHub Pages is not enabled. Source pages and default builds retain `noindex, nofollow`. Production build tooling is ready; actual hosting headers, MIME types, redirects, and indexing policies still require verification before deployment.
+This repository is for source review; the live site is hosted on Cloudflare, not GitHub Pages. Source pages and default builds retain `noindex, nofollow`. Production requires the explicit flags below. Live hosting headers, MIME types, redirects, and indexing policies have been verified.
 
 ## 稽核修正與正式建置 / Audit fixes and production builds
 
@@ -96,11 +102,11 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: no-referrer
 ```
 
-## Cloudflare 部署準備 / Cloudflare deployment preparation
+## Cloudflare 部署 / Cloudflare deployment
 
-2026-10-06：已選定 Cloudflare Free，正式 origin 為 `https://date.glossquote.com/`。這是部署設定與原始碼更新；DNS 接入及正式主機驗收尚未完成，不能把此提交當成網站已上線。
+2026-10-06：正式 origin 為 `https://date.glossquote.com/`，已部署並完成必要正式主機驗收。原始碼與網站發布各自驗證；品牌根網域首頁不在本工具範圍。
 
-Cloudflare Free is selected, with `https://date.glossquote.com/` as the production origin. This commit prepares hosting; DNS activation and live-host verification remain pending.
+Cloudflare Free serves the production origin `https://date.glossquote.com/`. Required live-host checks passed. The brand homepage at the apex domain is outside this tool's scope.
 
 ```sh
 npm run build -- --production --cloudflare --site-url https://date.glossquote.com/
@@ -111,9 +117,9 @@ npm run check -- --production --cloudflare --site-url https://date.glossquote.co
 
 The 12-file Cloudflare build adds exact-policy `_headers` and `_redirects`. Static-only hosting preserves the existing canonical URLs, redirects directory aliases, and avoids SPA fallback. Workers.dev and version preview URLs, custom logs, and tracking are disabled. The CLI build command regenerates validated production assets before deployment; source HTML and default builds remain noindex previews.
 
-Wrangler 4.147.0 已完成打包試跑；平台相容日期使用UTC 2026-10-05。CLI為獨立部署工具，不是產品執行期或測試依賴。真正上線仍需已登入的部署管道、Active zone及正式HTTP／瀏覽器驗收；不得只上传dist而忽略HTML handling設定。`dist`、`.wrangler`及憑證不得提交。
+Wrangler 4.147.0 已完成正式部署；平台相容日期使用UTC 2026-10-05。CLI為獨立部署工具，不是產品執行期或測試依賴。不得只上传dist而忽略HTML handling設定。`dist`、`.wrangler`及憑證不得提交。GitHub原始碼發布與目前手動CLI部署分開進行，未接通Git自動部署。
 
-Packaging was dry-run with Wrangler 4.147.0. Deployment still requires authentication, an active zone, and live HTTP/browser verification. The CLI is deployment tooling, not a runtime or test dependency. Do not upload assets with a hosting configuration that changes the canonical URL contract. Keep generated output and credentials out of Git.
+Deployment uses Wrangler 4.147.0 with the checked-in configuration. The CLI is deployment tooling, not a runtime or test dependency. Do not upload assets with a hosting configuration that changes the canonical URL contract. Keep generated output and credentials out of Git. GitHub source publication is separate from the current manual CLI deployment; automatic Git builds are not connected.
 
 ## 授權 / License
 
