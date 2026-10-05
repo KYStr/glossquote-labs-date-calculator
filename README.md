@@ -96,6 +96,25 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: no-referrer
 ```
 
+## Cloudflare 部署準備 / Cloudflare deployment preparation
+
+2026-10-06：已選定 Cloudflare Free，正式 origin 為 `https://date.glossquote.com/`。這是部署設定與原始碼更新；DNS 接入及正式主機驗收尚未完成，不能把此提交當成網站已上線。
+
+Cloudflare Free is selected, with `https://date.glossquote.com/` as the production origin. This commit prepares hosting; DNS activation and live-host verification remain pending.
+
+```sh
+npm run build -- --production --cloudflare --site-url https://date.glossquote.com/
+npm run check -- --production --cloudflare --site-url https://date.glossquote.com/
+```
+
+此模式產生12份檔案，新增精確驗證的 `_headers`／`_redirects`。`wrangler.jsonc` 使用純靜態資產、`html_handling: none`，保留 `/index.html` 與 `/en/index.html` canonical；`/`、`/en`、`/en/` 以301導向唯一頁，未知路徑404。安全HTTP標頭包括CSP、nosniff、no-referrer及 `.mjs` JavaScript MIME。停用workers.dev、version preview URLs、自訂日誌與追蹤。
+
+The 12-file Cloudflare build adds exact-policy `_headers` and `_redirects`. Static-only hosting preserves the existing canonical URLs, redirects directory aliases, and avoids SPA fallback. Workers.dev and version preview URLs, custom logs, and tracking are disabled. The CLI build command regenerates validated production assets before deployment; source HTML and default builds remain noindex previews.
+
+Wrangler 4.147.0 已完成打包試跑；平台相容日期使用UTC 2026-10-05。CLI為獨立部署工具，不是產品執行期或測試依賴。真正上線仍需已登入的部署管道、Active zone及正式HTTP／瀏覽器驗收；不得只上传dist而忽略HTML handling設定。`dist`、`.wrangler`及憑證不得提交。
+
+Packaging was dry-run with Wrangler 4.147.0. Deployment still requires authentication, an active zone, and live HTTP/browser verification. The CLI is deployment tooling, not a runtime or test dependency. Do not upload assets with a hosting configuration that changes the canonical URL contract. Keep generated output and credentials out of Git.
+
 ## 授權 / License
 
 尚未指定授權條款，未加入LICENSE檔案。No license terms have been specified; no LICENSE file is included.

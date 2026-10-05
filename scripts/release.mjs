@@ -1,3 +1,5 @@
+import { cloudflarePolicy } from "./cloudflare.mjs";
+
 export const PAGE_PATHS = Object.freeze(["index.html", "en/index.html"]);
 
 export function releasePolicy(siteUrl) {
@@ -26,15 +28,34 @@ export function releasePolicy(siteUrl) {
 
 export function parseReleaseArgs(args) {
   if (args.length === 0) return { production: false };
-  if (args.length !== 3 || !args.includes("--production")) {
-    throw new Error("Use --production --site-url https://host/directory/ together, or no arguments for preview.");
+  let production = false;
+  let cloudflare = false;
+  let siteUrl;
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === "--production") {
+      if (production) throw new Error("Duplicate --production flag.");
+      production = true;
+    } else if (argument === "--cloudflare") {
+      if (cloudflare) throw new Error("Duplicate --cloudflare flag.");
+      cloudflare = true;
+    } else if (argument === "--site-url") {
+      if (siteUrl !== undefined || index + 1 >= args.length) {
+        throw new Error("--site-url requires one URL value.");
+      }
+      siteUrl = args[index + 1];
+      index += 1;
+    } else {
+      throw new Error("Unknown release argument.");
+    }
   }
-  const productionAt = args.indexOf("--production");
-  if (productionAt !== 0 && productionAt !== 2) throw new Error("Unknown release argument order.");
-  const remaining = args.filter((_, index) => index !== productionAt);
-  if (remaining[0] !== "--site-url") throw new Error("Unknown release arguments.");
-  releasePolicy(remaining[1]);
-  return { production: true, siteUrl: remaining[1] };
+
+  if (!production || siteUrl === undefined) {
+    throw new Error("Production requires --production and --site-url; Cloudflare also requires both.");
+  }
+  releasePolicy(siteUrl);
+  if (cloudflare) cloudflarePolicy(siteUrl);
+  return cloudflare ? { production, siteUrl, cloudflare } : { production, siteUrl };
 }
 
 function activeMarkup(html) {

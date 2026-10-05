@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { lstat, readFile, realpath, readdir } from "node:fs/promises";
 import { dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { cloudflarePolicy } from "./cloudflare.mjs";
 import { PAGE_PATHS, assertProductionHtml, parseReleaseArgs, releasePolicy } from "./release.mjs";
 
 const PROJECT_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -401,8 +402,10 @@ export async function runProjectCheck(projectPath = PROJECT_ROOT) {
   return { ok: true, checkedFiles: files.length };
 }
 
-export async function checkReleaseOutput(outputPath, { siteUrl } = {}) {
+export async function checkReleaseOutput(outputPath, { siteUrl, cloudflare = false } = {}) {
+  if (typeof cloudflare !== "boolean") throw new Error("Cloudflare check mode must be boolean.");
   const policy = releasePolicy(siteUrl);
+  const hostingPolicy = cloudflare ? cloudflarePolicy(siteUrl) : null;
   const root = resolve(outputPath);
   const rootInfo = await lstat(root);
   if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink()) throw new Error("Release root must be a regular directory.");
@@ -423,14 +426,16 @@ export async function checkReleaseOutput(outputPath, { siteUrl } = {}) {
   }
   await visit(canonicalRoot);
   const names = files.map((path) => relative(canonicalRoot, path).split(sep).join("/"));
-  for (const required of [...PAGE_PATHS, ...policy.files.keys()]) {
+  for (const required of [...PAGE_PATHS, ...policy.files.keys(), ...(hostingPolicy?.files.keys() ?? [])]) {
     if (!names.includes(required)) failures.push(`Missing release file: ${required}`);
   }
   for (const path of files) {
     const name = relative(canonicalRoot, path).split(sep).join("/");
     const extension = extname(path).toLowerCase();
     const source = await readFile(path, "utf8");
-    if (policy.files.has(name)) {
+    if (hostingPolicy?.files.has(name)) {
+      if (source !== hostingPolicy.files.get(name)) failures.push(`${name}: generated Cloudflare content differs from policy`);
+    } else if (policy.files.has(name)) {
       if (source !== policy.files.get(name)) failures.push(`${name}: generated SEO content differs from policy`);
     } else if (!PUBLIC_EXTENSIONS.has(extension)) {
       failures.push(`${name}: unsupported release file extension`);

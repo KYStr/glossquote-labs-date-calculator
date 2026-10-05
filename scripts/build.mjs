@@ -2,6 +2,7 @@ import { copyFile, lstat, mkdir, readFile, readdir, realpath, rm, writeFile } fr
 import { dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkReleaseOutput, runProjectCheck } from "./check.mjs";
+import { cloudflarePolicy } from "./cloudflare.mjs";
 import { PAGE_PATHS, parseReleaseArgs, productionHtml, releasePolicy } from "./release.mjs";
 
 const PROJECT_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -92,11 +93,13 @@ async function validateDistTarget(projectRoot, distPath) {
   }
 }
 
-export async function buildProject({ projectPath = PROJECT_ROOT, check = runProjectCheck, production = false, siteUrl } = {}) {
-  if (typeof production !== "boolean" || (!production && siteUrl !== undefined)) {
+export async function buildProject({ projectPath = PROJECT_ROOT, check = runProjectCheck, production = false, cloudflare = false, siteUrl } = {}) {
+  if (typeof production !== "boolean" || typeof cloudflare !== "boolean" || (!production && siteUrl !== undefined)) {
     throw new Error("site-url requires explicit production mode.");
   }
+  if (cloudflare && !production) throw new Error("Cloudflare output requires explicit production mode.");
   const policy = production ? releasePolicy(siteUrl) : null;
+  const hostingPolicy = cloudflare ? cloudflarePolicy(siteUrl) : null;
   await check(projectPath);
 
   let projectRoot;
@@ -108,6 +111,7 @@ export async function buildProject({ projectPath = PROJECT_ROOT, check = runProj
 
   const { files } = await collectPublicFiles(projectRoot);
   const generated = new Map(policy?.files ?? []);
+  for (const [name, contents] of hostingPolicy?.files ?? []) generated.set(name, contents);
   if (policy) {
     for (const page of PAGE_PATHS) {
       const source = files.find((entry) => entry.relativePath.split(sep).join("/") === page);
@@ -140,9 +144,9 @@ export async function buildProject({ projectPath = PROJECT_ROOT, check = runProj
   }
 
   for (const [name, contents] of generated) await writeFile(resolve(distPath, name), contents, "utf8");
-  if (policy) await checkReleaseOutput(distPath, { siteUrl });
+  if (policy) await checkReleaseOutput(distPath, { siteUrl, cloudflare });
 
-  return { outputPath: distPath, fileCount: files.length + (policy?.files.size ?? 0) };
+  return { outputPath: distPath, fileCount: files.length + (policy?.files.size ?? 0) + (hostingPolicy?.files.size ?? 0) };
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
