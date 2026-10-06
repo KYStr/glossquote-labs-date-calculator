@@ -21,6 +21,12 @@ const CONTROLLED_DIRS = Object.freeze(["scripts", "public", "test"]);
 const SCANNED_EXTENSIONS = new Set([".html", ".css", ".js", ".mjs"]);
 const PUBLIC_EXTENSIONS = new Set([".html", ".css", ".js", ".mjs"]);
 const CODE_EXTENSIONS = new Set([".js", ".mjs"]);
+// Navigation only: this set must never authorize resource loads or form actions.
+const FAMILY_LINKS = new Set([
+  "https://glossquote.com/index.html", "https://glossquote.com/en/index.html",
+  "https://units.glossquote.com/index.html", "https://units.glossquote.com/en/index.html",
+  "https://date.glossquote.com/index.html", "https://date.glossquote.com/en/index.html",
+]);
 const EXPECTED_SCRIPTS = Object.freeze({
   dev: "node scripts/serve.mjs",
   test: "node --test",
@@ -241,7 +247,7 @@ async function resolveLocalReference(value, sourcePath, allowedRoot, failures, p
 
 async function checkHtml(source, filePath, publicRoot, projectRoot, failures, metadataLinks = []) {
   const html = stripComments(source, "html");
-  if (/<base\b/i.test(html) || /<style\b/i.test(html) || /\sstyle\s*=/i.test(html) || /\son[a-z]+\s*=/i.test(html)) {
+  if (/<base\b/i.test(html) || /<style\b/i.test(html) || /\sstyle\s*=/i.test(html) || /\son[a-z]+\s*=/i.test(html) || /\sping\s*=/i.test(html)) {
     failures.push(`${displayPath(projectRoot, filePath)}: inline execution or style markup is not allowed`);
   }
 
@@ -257,6 +263,7 @@ async function checkHtml(source, filePath, publicRoot, projectRoot, failures, me
     const references = attributes.matchAll(/\b(src|href|poster|action|srcset)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi);
     for (const [, attributeName, doubleQuoted, singleQuoted, unquoted] of references) {
       const attributeValue = doubleQuoted ?? singleQuoted ?? unquoted ?? "";
+      if (tagName.toLowerCase() === "a" && attributeName.toLowerCase() === "href" && FAMILY_LINKS.has(attributeValue)) continue;
       if (attributeName.toLowerCase() === "srcset") {
         for (const candidate of attributeValue.split(",")) {
           await resolveLocalReference(candidate.trim().split(/\s+/)[0], filePath, publicRoot, failures, projectRoot);

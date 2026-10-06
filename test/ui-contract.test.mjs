@@ -222,7 +222,9 @@ test("static page metadata, privacy copy, FAQ content, and language links stay l
     assert.equal(attribute(`<script ${scriptBlocks[0][1]}>`, "type"), "module");
     assert.ok(attribute(`<script ${scriptBlocks[0][1]}>`, "src").startsWith("./") || attribute(`<script ${scriptBlocks[0][1]}>`, "src").startsWith("../"));
     assert.equal(scriptBlocks[0][2].trim(), "", "the page has no inline script");
-    assert.doesNotMatch(html, /https?:\/\//i, "no remote fonts, assets, or links are declared");
+    const familyNavigation = /<a\b[^>]*href="https:\/\/(?:glossquote\.com|units\.glossquote\.com)\/(?:en\/)?index\.html"[^>]*>/g;
+    assert.equal([...html.matchAll(familyNavigation)].length, 3, "brand and footer expose only the three expected family anchors");
+    assert.doesNotMatch(html.replace(familyNavigation, ""), /https?:\/\//i, "no remote resources or other external links are declared");
     assert.doesNotMatch(html, /\s+on[a-z]+\s*=/i, "no inline event handler attributes");
     assert.doesNotMatch(html, /\bmaxlength\s*=/i, "inputs must not silently truncate source text");
   }

@@ -66,9 +66,28 @@ a:hover {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   margin: 0;
   font-size: var(--gq-text-sm);
   font-weight: 650;
+}
+
+.site-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gq-space-2) var(--gq-space-6);
+  margin-top: var(--gq-space-8);
+  padding-block: var(--gq-space-4);
+  border-top: 1px solid var(--gq-color-separator);
+}
+
+.site-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
 }
 
 .language-switch {
