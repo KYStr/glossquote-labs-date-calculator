@@ -89,8 +89,8 @@ npm run check -- --production --site-url https://dates.example.invalid/tools/dat
 - Production HTML gets self-canonical URLs, reciprocal absolute zh-Hant/en hreflang, and index/follow. The sitemap lists only index.html and en/index.html. Source HTML stays noindex.
 - 根目錄正式build10檔，含robots.txt；子目錄build9檔，不產生robots，須檢查主站origin根目錄既有政策並提交或登記sitemap。不得覆寫主站robots。
 - Origin-root builds contain 10 files including robots.txt. Subdirectory builds contain 9 files and no robots file; inspect the parent site's origin-root policy and submit or register the sitemap without overwriting that policy.
-- 接受簡單ASCII HTTPS主機／目錄，拒絕帳密、query、fragment、編碼及歧義路徑。一般連結與資產仍限本地；只有精確SEO metadata可用絕對網址，任意XML/TXT及inline script仍拒絕。註解中的SEO標記不計有效。
-- Plain ASCII HTTPS hosts/directories are accepted; credentials, queries, fragments, encoded and ambiguous paths are rejected. General links/assets stay local, only exact SEO metadata permits absolute URLs, and arbitrary XML/TXT or inline scripts remain rejected. Commented-out SEO tags do not count.
+- 接受簡單ASCII HTTPS主機／目錄，拒絕帳密、query、fragment、編碼及歧義路徑。資產仍限本地；絕對網址只允許精確SEO metadata及六個固定家族頁面作導覽錨點。任意XML/TXT、inline script與ping仍拒絕。註解中的SEO標記不計有效。
+- Plain ASCII HTTPS hosts/directories are accepted; credentials, queries, fragments, encoded and ambiguous paths are rejected. Assets stay local; absolute URLs are restricted to exact SEO metadata and six fixed family-page navigation anchors. Arbitrary XML/TXT, inline scripts, and pings remain rejected. Commented-out SEO tags do not count.
 - 無旗標npm run build恢復8檔noindex預覽；npm run dev永遠讀public，不是正式主機。build不部署，dist不入Git。
 - Running npm run build without flags restores the 8-file noindex preview. npm run dev always serves public, not the production build. Builds do not deploy, and dist is not tracked.
 
