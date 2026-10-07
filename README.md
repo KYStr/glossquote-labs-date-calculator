@@ -6,11 +6,11 @@ A static date calculator in Traditional Chinese and English. Calculations run in
 
 正式網站 / Live website: [繁體中文](https://date.glossquote.com/index.html) · [English](https://date.glossquote.com/en/index.html)
 
-家族導覽更新 / Family navigation update (2026-10-06): 頁首品牌與頁尾提供同語言[所有工具](https://glossquote.com/index.html)及[單位換算](https://units.glossquote.com/index.html)連結，不附加任何輸入或追蹤參數。These explicit navigation links carry no entered values or tracking parameters. Exact family anchors are allowed; remote assets, form actions and link pings remain rejected. This source update passed 52 automated tests; rollout of the new navigation is pending live verification.
+家族導覽更新 / Family navigation update (2026-10-07): 頁首品牌與頁尾提供同語言[所有工具](https://glossquote.com/index.html)及[單位換算](https://units.glossquote.com/index.html)連結，不附加任何輸入或追蹤參數。已正式部署並驗證兩語互連。These explicit navigation links carry no entered values or tracking parameters. Exact family anchors are allowed; remote assets, form actions and link pings remain rejected. This update passed 52 automated tests and is deployed with both language navigation flows verified.
 
-2026-10-06 已部署於 Cloudflare Free Static Assets。DNSSEC、HTTPS、24項正式HTTP檢查、雙語瀏覽器計算及10份公開檔案的位元組比對均通過。搜尋引擎是否收錄尚未驗證；下列真機與輔助技術待驗項仍保留。
+2026-10-06 首次部署於 Cloudflare Free Static Assets，2026-10-07 更新家族導覽。DNSSEC、HTTPS、30項正式HTTP檢查、雙語瀏覽器閏年日期差 2 天／含起訖 3 天及10份公開檔案的位元組比對均通過。搜尋引擎是否收錄尚未驗證；下列真機與輔助技術待驗項仍保留。
 
-Deployed on Cloudflare Free Static Assets on 2026-10-06. DNSSEC, HTTPS, 24 live HTTP checks, bilingual browser calculations, and byte comparisons of all 10 public files passed. Search-engine indexing is not verified; the device and assistive-technology checks listed below remain pending.
+First deployed on Cloudflare Free Static Assets on 2026-10-06; family navigation updated on 2026-10-07. DNSSEC, HTTPS, 30 live HTTP checks, bilingual leap-year calculations (2 days apart, 3 inclusive), and byte comparisons of all 10 public files passed. Search-engine indexing is not verified; the device and assistive-technology checks listed below remain pending.
 
 ## 功能 / Features
 
